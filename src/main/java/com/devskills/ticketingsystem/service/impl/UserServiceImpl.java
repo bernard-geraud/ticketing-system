@@ -25,31 +25,14 @@ public class UserServiceImpl implements UserService {
 	
 	private final UserRepository userRepo;
 	private final TicketRepository ticketRepo;
-
 	@Override
-	public List<User> getUsers() {
+	public List<User> getAll() {
 		log.info("Fetching all users");
 		return userRepo.findAll();
 	}
 
 	@Override
-	public List<Ticket> getTickets(Long id) {
-		Optional<User> optionalUser = userRepo.findById(id);
-		
-		if (optionalUser.isPresent()) {
-			User user = optionalUser.get();
-			log.info("Getting tickets of user: {}", user.getUsername());
-			
-			return ticketRepo.findByUser(user);
-			
-		} else {
-			log.error("User with provided id {} not found in database", id);
-			throw new ResourceNotFoundException("User id " + id + " not found in database");
-		}
-	}
-
-	@Override
-	public User saveUser(User user) {
+	public User save(User user) {
 		if (user.getEmail() == null) {
 			throw new BadContentException("Please, provide email for this user: " + user);
 		} else {
@@ -69,7 +52,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public User updateUser(Long id, User user) {
+	public User update(Long id, User user) {
 		Optional<User> optionalUser = userRepo.findById(id);
 		
 		if (optionalUser.isPresent()) {
@@ -90,6 +73,22 @@ public class UserServiceImpl implements UserService {
 		} else {
 			log.error("User {} not found in database", user.getUsername());
 			throw new ResourceNotFoundException("User " + user.getUsername() + " not found in database");
+		}
+	}
+	
+	@Override
+	public List<Ticket> getTickets(Long id) {
+		Optional<User> optionalUser = userRepo.findById(id);
+		
+		if (optionalUser.isPresent()) {
+			User user = optionalUser.get();
+			log.info("Getting tickets of user: {}", user.getUsername());
+			
+			return ticketRepo.findByUser(user);
+			
+		} else {
+			log.error("User with provided id {} not found in database", id);
+			throw new ResourceNotFoundException("User id " + id + " not found in database");
 		}
 	}
 

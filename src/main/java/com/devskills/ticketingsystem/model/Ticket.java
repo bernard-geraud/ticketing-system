@@ -26,7 +26,7 @@ public class Ticket {
 	@GeneratedValue(strategy=AUTO)
 	private Long id;
 	
-	@Column(nullable = true, unique=true)
+	@Column(unique = true, nullable = false)
 	private String title;
 	
 	@Column(columnDefinition = "TEXT")
@@ -38,6 +38,13 @@ public class Ticket {
 	private TicketStatus status;
 	
 	public Ticket(String title, String description, TicketStatus status) {
+		this.title = title;
+		this.description = description;
+		this.status = status;
+	}
+	
+	public Ticket(Long id, String title, String description, TicketStatus status) {
+		this.id = id;
 		this.title = title;
 		this.description = description;
 		this.status = status;

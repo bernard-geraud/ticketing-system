@@ -26,40 +26,30 @@ public class TicketServiceImpl implements TicketService {
 	
 	private final TicketRepository ticketRepo;
 	private final UserRepository userRepo;
-
+	
 	@Override
-	public List<Ticket> getTickets() {
+	public List<Ticket> getAll() {
 		log.info("Fetching all tickets");
 		return ticketRepo.findAll();
 	}
 
 	@Override
-	public Ticket getTicket(Long id) {
-		log.info("Fetching post {}", id);
-		Optional<Ticket> optionalTicket = ticketRepo.findById(id);
-		
-		if (optionalTicket.isPresent()) {
-			return optionalTicket.get();
-		} else {
-			log.error("Ticket {} not found in the database", id);
-			throw new ResourceNotFoundException("Post " + id + " not found in the database");
-		}
-	}
-
-	@Override
-	public Ticket saveTicket(Ticket ticket) {
+	public Ticket save(Ticket ticket) {
 		Optional<Ticket> optionalTicket = ticketRepo.findByTitle(ticket.getTitle());
 		if (optionalTicket.isPresent()) {
 			log.info("Ticket with title {} already exist", ticket.getTitle());
 			throw new BadContentException("Ticket with title " + ticket.getTitle() + " already exist");
 		} else {
 			log.info("Saving new ticket {} in the database", ticket.getTitle());
+			if (ticket.getStatus() == null) {
+				ticket.setStatus(TicketStatus.PROGRESS);
+			}
 			return ticketRepo.save(ticket);
 		}
 	}
 
 	@Override
-	public Ticket updateTicket(Long id, Ticket ticket) {
+	public Ticket update(Long id, Ticket ticket) {
 		Optional<Ticket> optionalTicket = ticketRepo.findById(id);
 		
 		if (optionalTicket.isPresent()) {
@@ -87,9 +77,22 @@ public class TicketServiceImpl implements TicketService {
 			throw new ResourceNotFoundException("Ticket " + ticket.getTitle() + " not found in database");
 		}
 	}
-
+	
 	@Override
-	public User assignTicket(Long id, Long userId) {
+	public Ticket getTicket(Long id) {
+		log.info("Fetching post {}", id);
+		Optional<Ticket> optionalTicket = ticketRepo.findById(id);
+		
+		if (optionalTicket.isPresent()) {
+			return optionalTicket.get();
+		} else {
+			log.error("Ticket {} not found in the database", id);
+			throw new ResourceNotFoundException("Post " + id + " not found in the database");
+		}
+	}
+	
+	@Override
+	public Ticket assignTicket(Long id, Long userId) {
 		Optional<Ticket> optionalTicket = ticketRepo.findById(id);
 		
 		if (optionalTicket.isPresent()) {
@@ -101,9 +104,7 @@ public class TicketServiceImpl implements TicketService {
 				log.info("Assigning ticket: {} to user: {}", ticket.getTitle(), user.getUsername());
 				
 				ticket.setUser(user);
-				ticketRepo.save(ticket);
-				
-				return userRepo.save(user);
+				return ticketRepo.save(ticket);
 			} else {
 				log.error("User {} not found in database", userId);
 				throw new ResourceNotFoundException("User " + userId + " not found in database");
@@ -113,15 +114,16 @@ public class TicketServiceImpl implements TicketService {
 			throw new ResourceNotFoundException("Ticket " + id + " not found in database");
 		}
 	}
-
+	
 	@Override
-	public void deleteTicket(Long id) {
+	public Boolean deleteTicket(Long id) {
 		Optional<Ticket> optionalTicket = ticketRepo.findById(id);
 		
 		if (optionalTicket.isPresent()) {
 			log.warn("Deleting ticket {} in the database", id);
 			
 			ticketRepo.deleteById(id);
+			return ticketRepo.findById(id).isEmpty();
 		} else {
 			log.error("Ticket {} not found in the database", id);
 			throw new ResourceNotFoundException("Ticket " + id + " not found in the database");
